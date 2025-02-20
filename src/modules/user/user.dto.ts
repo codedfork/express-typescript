@@ -1,19 +1,23 @@
-import { IsEnum, IsOptional, IsString } from "class-validator";
+import { IsEnum, IsOptional, IsString, IsStrongPassword } from "class-validator";
 
 export class UserDto {
     @IsString()
-    // @IsOptional()
-    role : string;
+    @IsOptional()
+    name : string;
     
     @IsString()
-    // @IsOptional()
-    jobTitle : string
+    @IsOptional()
+    email : string
 
     @IsString()
-    // @IsOptional()
-    sortBy : string
+    @IsOptional()
+    address : string
 
-    @IsEnum(["ASC","DESC"])
-    // @IsOptional()
-    order: "ASC" | "DESC"
+    @IsStrongPassword()
+    @IsOptional()
+    password: string
+
+    @IsStrongPassword()
+    @IsOptional()
+    data: string
 }

@@ -1,5 +1,7 @@
 import { DataSource } from "typeorm";
 import dotenv from 'dotenv';
+import { User } from "../user/user.model";
+import { Post } from "../post/post.model";
 dotenv.config();
 const AppDataSource = new DataSource({
   type: "postgres", // Database type
@@ -10,7 +12,7 @@ const AppDataSource = new DataSource({
   database: process.env.DB_NAME || "your_database_name", // Database name
   synchronize: true, // Automatically synchronize your schema (useful in development)
   logging: true, // Enable query logging (for development and debugging)
-  entities: [], // Specify your entities here
+  entities: [User,Post], // Specify your entities here
   migrations: [], // Optionally, specify migrations if you're using them
   subscribers: [], // Optional, for event listeners
 });

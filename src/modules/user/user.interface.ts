@@ -6,3 +6,9 @@ export interface IUser
     order : "ASC" | "DESC";
 
 }
+
+export interface IAuthUser 
+{
+    email: string;
+    password: string;
+}
