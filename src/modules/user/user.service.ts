@@ -1,17 +1,21 @@
 import { UserDto } from "./user.dto";
 import AppDataSource from "../config/database";
 import { User } from "./user.model";
-import { Repository } from "typeorm";
+import { FindOneOptions, Repository } from "typeorm";
 import { NextFunction, Request } from "express";
 import { IAuthUser } from "./user.interface";
 import { Authorization } from "../../middleware/authorization";
 import bcrypt from 'bcrypt';
 import { plainToClass } from "class-transformer";
+import { AssignRoleDto, AssignedRoleResponseDto } from "./user.dto";
+import { Role } from "../role/role.model";
 export class UserService {
     private userRepository: Repository<User>;
+    private roleRepository: Repository<Role>;
 
     constructor() {
         this.userRepository = AppDataSource.getRepository(User);
+        this.roleRepository = AppDataSource.getRepository(Role);
     }
 
     /**
@@ -24,7 +28,7 @@ export class UserService {
             const saltRounds = 10;
             userQueryParams.password = await bcrypt.hash(userQueryParams.password, saltRounds);
             const newUser = this.userRepository.create(userQueryParams);
-            const savedUser= await this.userRepository.save(newUser);
+            const savedUser = await this.userRepository.save(newUser);
             return plainToClass(User, savedUser);
         } catch (error) {
             if (error.code === '23505') { // Unique violation error code (Postgres)
@@ -41,8 +45,8 @@ export class UserService {
     public async getAllUsers(): Promise<User[]> {
         try {
             const users = await this.userRepository.find({
-                select:['id','name','email','address'],
-                relations:['posts']
+                select: ['id', 'name', 'email', 'address'],
+                relations: ['posts']
             });
             return users;
         } catch (error) {
@@ -120,5 +124,42 @@ export class UserService {
         } else {
             return false;
         }
+    }
+
+    //Function to assign a role to user
+    public async assignRole(assignRoleDto: AssignRoleDto): Promise<AssignedRoleResponseDto> {
+        const { userId, roleId } = assignRoleDto;
+        const role = await this.roleRepository.findOne({
+            where: {
+                id: roleId
+            }
+        })
+        if (!role) {
+            throw new Error('Role not found');
+        }
+        const assignedRole = await this.userRepository.update({ id: userId }, { role: role });
+
+        if (assignedRole.affected > 0) {
+            const userWithRole = await this.getUserHelper(userId, ['name', 'id'], ['role']);
+            return {
+                userId: userWithRole.id,
+                userName: userWithRole.name,
+                roleId:userWithRole.role.id,
+                roleName:userWithRole.role.name
+            }
+        }
+    }
+
+    //Function to get a user by id and selected columns
+
+    public async getUserHelper(userId: string, columns, relations:string[]): Promise<User> {
+        const user = await this.userRepository.findOne({
+            where: {
+                id: userId
+            },
+            select: columns,
+            relations: relations
+        })
+        return user;
     }
 }

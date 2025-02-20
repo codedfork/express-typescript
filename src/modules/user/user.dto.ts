@@ -21,3 +21,38 @@ export class UserDto {
     @IsOptional()
     data: string
 }
+
+export class AssignRoleDto
+{
+    @IsString()
+    userId:string
+
+    @IsString()
+    roleId:string
+}
+
+export class AssignedRoleResponseDto
+{
+    @IsString()
+    userId:string
+
+    @IsString()
+    userName:string
+
+    @IsString()
+    roleId:string
+
+    @IsString()
+    roleName:string
+}
+
+export class GetSingleUserDto
+{
+    @IsString()
+    @IsOptional()
+    email:string
+
+    @IsString()
+    @IsOptional()
+    id:string
+}

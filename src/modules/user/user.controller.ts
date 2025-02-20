@@ -1,6 +1,6 @@
 import { plainToInstance } from "class-transformer";
 import { Request, Response } from "express";
-import { UserDto } from "./user.dto";
+import { AssignRoleDto, GetSingleUserDto, UserDto } from "./user.dto";
 import { validate, validateOrReject } from "class-validator";
 import { apiResponseBadRequest, apiResponseNotFound, apiResponseOk } from "../../utils/apiHandler";
 import { IAuthUser } from "./user.interface";
@@ -57,7 +57,7 @@ export class UserController {
     }
 
     //Function to get all users
-    async get(req:Request,res: Response) {
+    async get(req: Request, res: Response) {
         const users = await this.userService.getAllUsers();
         if (users.length) {
             apiResponseOk(users, res);
@@ -80,5 +80,42 @@ export class UserController {
             }, res);
         }
     }
+
+    //Function to assign a role to user
+    async assignRole(req: Request, res: Response) {
+        const assignRolePayload: AssignRoleDto = plainToInstance(AssignRoleDto, req.body);
+        await validateOrReject(assignRolePayload);
+
+        const response = await this.userService.assignRole(assignRolePayload);
+        if (response) {
+            apiResponseOk({ response, message: "Role assigned successfully." }, res);
+        } else {
+            apiResponseNotFound({
+                message: "Wrong credentials.."
+            }, res);
+        }
+    }
+
+    //Function to get a single user
+    public async getOne(req: Request, res: Response) {
+        try {
+
+            const userPayload = plainToInstance(GetSingleUserDto, req.body);
+            await validateOrReject(userPayload)
+            if (userPayload.email || userPayload.id) {
+                const user = await this.userService.getUserHelper(userPayload.id, ['name', 'email', 'address', 'id'], ['role', 'posts']);
+                if (user) {
+                    apiResponseOk({ user, message: "Data fetched successfully" }, res);
+                } else {
+                    apiResponseNotFound({ user, message: "User not found" }, res);
+                }
+            }
+        } catch (error) {
+            logger.error(error);
+            apiResponseBadRequest({ error, message: "Somthing went wrong" }, res);
+        }
+    }
+
+
 
 }

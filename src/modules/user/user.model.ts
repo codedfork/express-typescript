@@ -1,6 +1,7 @@
-import {Entity, Column, PrimaryColumn, PrimaryGeneratedColumn, Unique, IsNull, OneToMany} from 'typeorm';
+import {Entity, Column, PrimaryColumn, PrimaryGeneratedColumn, Unique, IsNull, OneToMany, ManyToOne} from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { Post } from '../post/post.model';
+import { Role } from '../role/role.model';
 @Entity()
 export class User
 {
@@ -22,4 +23,7 @@ export class User
 
     @OneToMany(()=>Post, post=>post.user)
     posts:Post[]
+
+    @ManyToOne(()=>Role, role=>role.user)
+    role:Role
 }
